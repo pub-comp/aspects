@@ -21,6 +21,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{968235BF-9B21-4297-9DF0-37D73D46A8F6}"
 	ProjectSection(SolutionItems) = preProject
 		.tfignore = .tfignore
+		VersionHistory.txt = VersionHistory.txt
 		VersionInfo.cs = VersionInfo.cs
 	EndProjectSection
 EndProject
