@@ -1,0 +1,66 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{A698BF27-DEB8-4D33-8D41-3F34AB97377D}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\packages.config = .nuget\packages.config
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".NuGetPack", ".NuGetPack", "{2236B357-CB1D-4760-9ACD-3B022929B273}"
+	ProjectSection(SolutionItems) = preProject
+		.NuGetPack\NuGet.exe = .NuGetPack\NuGet.exe
+		.NuGetPack\NuGetPack.exe = .NuGetPack\NuGetPack.exe
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Monitoring", "Monitoring\Monitoring.csproj", "{571A9365-4FED-4C91-B46D-33B778E1BA47}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Monitoring.UnitTests", "Monitoring.UnitTests\Monitoring.UnitTests.csproj", "{8BE38599-1743-4E89-8E41-EA304DC58A28}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{968235BF-9B21-4297-9DF0-37D73D46A8F6}"
+	ProjectSection(SolutionItems) = preProject
+		.tfignore = .tfignore
+		VersionInfo.cs = VersionInfo.cs
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Monitoring.NuGet", "Monitoring.NuGet\Monitoring.NuGet.csproj", "{AEA3D3AD-56C4-4811-806B-DE563E248138}"
+EndProject
+Global
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 4
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs27
+		SccLocalPath0 = .
+		SccProjectUniqueName1 = Monitoring.UnitTests\\Monitoring.UnitTests.csproj
+		SccProjectName1 = Monitoring.UnitTests
+		SccLocalPath1 = Monitoring.UnitTests
+		SccProjectUniqueName2 = Monitoring\\Monitoring.csproj
+		SccProjectName2 = Monitoring
+		SccLocalPath2 = Monitoring
+		SccProjectUniqueName3 = Monitoring.NuGet\\Monitoring.NuGet.csproj
+		SccProjectName3 = Monitoring.NuGet
+		SccLocalPath3 = Monitoring.NuGet
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{571A9365-4FED-4C91-B46D-33B778E1BA47}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{571A9365-4FED-4C91-B46D-33B778E1BA47}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{571A9365-4FED-4C91-B46D-33B778E1BA47}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{571A9365-4FED-4C91-B46D-33B778E1BA47}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8BE38599-1743-4E89-8E41-EA304DC58A28}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8BE38599-1743-4E89-8E41-EA304DC58A28}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8BE38599-1743-4E89-8E41-EA304DC58A28}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8BE38599-1743-4E89-8E41-EA304DC58A28}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AEA3D3AD-56C4-4811-806B-DE563E248138}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AEA3D3AD-56C4-4811-806B-DE563E248138}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AEA3D3AD-56C4-4811-806B-DE563E248138}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AEA3D3AD-56C4-4811-806B-DE563E248138}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
