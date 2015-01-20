@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using Common.Logging;
 using Newtonsoft.Json;
 using PostSharp.Aspects;
@@ -12,8 +13,10 @@ namespace PubComp.Aspects.Monitoring
         private string className;
         private string fullMethodName;
         private readonly LogLevel exceptionLogLevel;
+        private string logName;
         private ILog log;
         private readonly bool doLogValuesOnException;
+        private int initialized = 0;
 
         /// <summary>
         /// Creates a new LogAttribute
@@ -27,9 +30,7 @@ namespace PubComp.Aspects.Monitoring
         /// </remarks>
         public LogAttribute(string logName = null, LogLevel exceptionLogLevel = LogLevel.Error, bool doLogValuesOnException = true)
         {
-            if (!string.IsNullOrEmpty(logName))
-                this.log = LogManager.GetLogger(logName);
-
+            this.logName = logName;
             this.exceptionLogLevel = exceptionLogLevel;
             this.doLogValuesOnException = doLogValuesOnException;
         }
@@ -38,6 +39,9 @@ namespace PubComp.Aspects.Monitoring
         {
             // ReSharper disable once PossibleNullReferenceException
             this.className = method.DeclaringType.FullName;
+            
+            if (string.IsNullOrEmpty(this.logName))
+                this.logName = this.className;
 
             var parameterTypes = string.Join(", ", method.GetParameters().Select(p => p.ParameterType.FullName).ToArray());
 
@@ -46,8 +50,8 @@ namespace PubComp.Aspects.Monitoring
 
         public override void OnInvoke(MethodInterceptionArgs args)
         {
-            if (this.log == null)
-                this.log = LogManager.GetLogger(this.className);
+            if (Interlocked.CompareExchange(ref initialized, 1, 0) == 0)
+                this.log = LogManager.GetLogger(this.logName);
 
             if (this.log == null)
             {

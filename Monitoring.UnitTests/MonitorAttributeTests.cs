@@ -26,6 +26,19 @@ namespace PubComp.Aspects.Monitoring.UnitTests
             Assert.AreEqual(1, stats.Exits);
             Assert.AreEqual(0, stats.Failures);
             Assert.IsTrue(stats.AverageDuration >= 90.0);
+            Assert.IsTrue(stats.TotalDuration >= 90.0);
+            Assert.IsTrue(stats.LastDuration >= 90.0);
+
+            target.Long();
+
+            stats = MonitorAttribute.GetStatistics(expectedName);
+
+            Assert.AreEqual(2, stats.Entries);
+            Assert.AreEqual(2, stats.Exits);
+            Assert.AreEqual(0, stats.Failures);
+            Assert.IsTrue(stats.AverageDuration >= 90.0);
+            Assert.IsTrue(stats.TotalDuration >= 180.0);
+            Assert.IsTrue(stats.LastDuration >= 90.0);
         }
 
         [TestMethod]

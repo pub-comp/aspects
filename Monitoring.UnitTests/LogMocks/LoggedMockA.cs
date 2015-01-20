@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading;
 
 namespace PubComp.Aspects.Monitoring.UnitTests.LogMocks
 {
@@ -13,6 +12,11 @@ namespace PubComp.Aspects.Monitoring.UnitTests.LogMocks
 
         [Log]
         public void Short()
+        {
+        }
+
+        [Log("MyLog")]
+        public void Other()
         {
         }
     }

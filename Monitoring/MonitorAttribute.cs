@@ -19,38 +19,17 @@ namespace PubComp.Aspects.Monitoring
         #region Logging
 
         private readonly LogLevel exceptionLogLevel;
+        private string logName;
         private ILog log;
         private readonly bool doLogValuesOnException;
+        private int initialized = 0;
 
         #endregion
 
         #region Performance Monitoring
 
-        private long entries;
-        private long exits;
-        private long failures;
-        private double totalDuration;
-        private double maxDuration;
-        private double lastDuration;
-        private double weighedAverage;
-        private readonly double Factor = 0.25;
-        private readonly SpinMonitor spinMonitor = new SpinMonitor();
-        private int hasBeenInitialized = 0;
-        private static readonly ConcurrentDictionary<string, MonitorAttribute> monitors
-            = new ConcurrentDictionary<string, MonitorAttribute>();
-
-        private double UpdateStatistics(double elaspedMilliseconds, bool failure)
-        {
-            exits++;
-            if (failure) failures++;
-            var duration = elaspedMilliseconds;
-            totalDuration += duration;
-            maxDuration = Math.Max(maxDuration, duration);
-            lastDuration = duration;
-            weighedAverage = exits == 1 ? duration : weighedAverage + (duration - weighedAverage) * Factor;
-                
-            return duration;
-        }
+        private static readonly ConcurrentDictionary<string, MonitorState> Monitors
+            = new ConcurrentDictionary<string, MonitorState>();
 
         /// <summary>
         /// The monitor names are the full name of the type, method and parameters
@@ -60,11 +39,11 @@ namespace PubComp.Aspects.Monitoring
         /// <returns></returns>
         public static MonitorStatistics GetStatistics(string monitorName)
         {
-            MonitorAttribute instance;
-            if (!monitors.TryGetValue(monitorName, out instance))
+            MonitorState instance;
+            if (!Monitors.TryGetValue(monitorName, out instance))
                 return default(MonitorStatistics);
 
-            return instance.GetStatistics();
+            return instance.CreateStatistics(monitorName);
         }
 
         /// <summary>
@@ -74,19 +53,7 @@ namespace PubComp.Aspects.Monitoring
         /// <returns></returns>
         public static IEnumerable<string> GetMonitorNames()
         {
-            return monitors.Keys.ToList();
-        }
-
-        private MonitorStatistics GetStatistics()
-        {
-            var averageDuration = totalDuration / exits;
-
-            return new MonitorStatistics(
-                this.fullMethodName,
-                Interlocked.Read(ref this.entries),
-                Interlocked.Read(ref this.exits),
-                Interlocked.Read(ref this.failures),
-                this.totalDuration, averageDuration, this.maxDuration, this.lastDuration, this.weighedAverage);
+            return Monitors.Keys.ToList();
         }
 
         #endregion
@@ -103,9 +70,7 @@ namespace PubComp.Aspects.Monitoring
         /// </remarks>
         public MonitorAttribute(string logName = null, LogLevel exceptionLogLevel = LogLevel.Error, bool doLogValuesOnException = true)
         {
-            if (!string.IsNullOrEmpty(logName))
-                this.log = LogManager.GetLogger(logName);
-
+            this.logName = logName;
             this.exceptionLogLevel = exceptionLogLevel;
             this.doLogValuesOnException = doLogValuesOnException;
         }
@@ -115,6 +80,9 @@ namespace PubComp.Aspects.Monitoring
             // ReSharper disable once PossibleNullReferenceException
             className = method.DeclaringType.FullName;
 
+            if (string.IsNullOrEmpty(this.logName))
+                this.logName = this.className;
+
             var parameterTypes = string.Join(", ", method.GetParameters().Select(p => p.ParameterType.FullName).ToArray());
 
             this.fullMethodName = string.Concat(className, '.', method.Name, '(', parameterTypes, ')');
@@ -122,12 +90,14 @@ namespace PubComp.Aspects.Monitoring
 
         public override void OnInvoke(MethodInterceptionArgs args)
         {
-            if (Interlocked.CompareExchange(ref hasBeenInitialized, 1, 0) == 0)
-                monitors.GetOrAdd(this.fullMethodName, this);
+            var state = Monitors.GetOrAdd(this.fullMethodName, x => new MonitorState());
 
             var stopwatch = new Stopwatch();
 
-            Interlocked.Increment(ref entries);
+            state.IncrementEntries();
+
+            if (Interlocked.CompareExchange(ref initialized, 1, 0) == 0)
+                this.log = LogManager.GetLogger(this.logName);
 
             if (this.log == null)
                 this.log = LogManager.GetLogger(className);
@@ -142,7 +112,7 @@ namespace PubComp.Aspects.Monitoring
 
                     var elapsedMilliseconds = stopwatch.Elapsed.TotalMilliseconds;
                     stopwatch.Stop();
-                    spinMonitor.InMonitor(() => UpdateStatistics(elapsedMilliseconds, false));
+                    state.UpdateStatistics(elapsedMilliseconds, false);
 
                     return;
                 }
@@ -150,7 +120,7 @@ namespace PubComp.Aspects.Monitoring
                 {
                     var elapsedMilliseconds = stopwatch.Elapsed.TotalMilliseconds;
                     stopwatch.Stop();
-                    spinMonitor.InMonitor(() => UpdateStatistics(elapsedMilliseconds, true));
+                    state.UpdateStatistics(elapsedMilliseconds, true);
                     
                     throw;
                 }
@@ -166,7 +136,7 @@ namespace PubComp.Aspects.Monitoring
 
                 var elapsedMilliseconds = stopwatch.Elapsed.TotalMilliseconds;
                 stopwatch.Stop();
-                spinMonitor.InMonitor(() => UpdateStatistics(elapsedMilliseconds, false));
+                state.UpdateStatistics(elapsedMilliseconds, false);
 
                 log.Trace(string.Concat("Exiting method: ", this.fullMethodName));
             }
@@ -174,7 +144,7 @@ namespace PubComp.Aspects.Monitoring
             {
                 var elapsedMilliseconds = stopwatch.Elapsed.TotalMilliseconds;
                 stopwatch.Stop();
-                spinMonitor.InMonitor(() => UpdateStatistics(elapsedMilliseconds, true));
+                state.UpdateStatistics(elapsedMilliseconds, true);
 
                 string message = doLogValuesOnException
                     ? string.Concat("Exception in method: ", this.fullMethodName, ", values: ",
@@ -206,5 +176,57 @@ namespace PubComp.Aspects.Monitoring
                 throw;
             }
         }
+
+        #region Inner Types
+
+        private class MonitorState
+        {
+            private long entries;
+            private long exits;
+            private long failures;
+            private double totalDuration;
+            private double maxDuration;
+            private double lastDuration;
+            private double weighedAverage;
+            private readonly double Factor = 0.25;
+            private readonly SpinMonitor spinMonitor = new SpinMonitor();
+
+            public double UpdateStatistics(double elapsedMilliseconds, bool failure)
+            {
+                return spinMonitor.InMonitor(() => UpdateStatisticsInner(elapsedMilliseconds, failure));
+            }
+
+            private double UpdateStatisticsInner(double elapsedMilliseconds, bool failure)
+            {
+                exits++;
+                if (failure) failures++;
+                var duration = elapsedMilliseconds;
+                totalDuration += duration;
+                maxDuration = Math.Max(maxDuration, duration);
+                lastDuration = duration;
+                weighedAverage = exits == 1 ? duration : weighedAverage + (duration - weighedAverage) * Factor;
+
+                return duration;
+            }
+
+            public MonitorStatistics CreateStatistics(string name)
+            {
+                var averageDuration = totalDuration / exits;
+
+                return new MonitorStatistics(
+                    name,
+                    Interlocked.Read(ref this.entries),
+                    Interlocked.Read(ref this.exits),
+                    Interlocked.Read(ref this.failures),
+                    this.totalDuration, averageDuration, this.maxDuration, this.lastDuration, this.weighedAverage);
+            }
+
+            public void IncrementEntries()
+            {
+                Interlocked.Increment(ref this.entries);
+            }
+        }
+
+        #endregion
     }
 }

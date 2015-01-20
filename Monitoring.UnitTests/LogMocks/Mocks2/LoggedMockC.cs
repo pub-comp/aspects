@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading;
 
 namespace PubComp.Aspects.Monitoring.UnitTests.LogMocks.Mocks2
 {

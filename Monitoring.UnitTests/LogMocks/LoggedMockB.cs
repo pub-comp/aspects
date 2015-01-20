@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading;
 using PostSharp.Extensibility;
 
 namespace PubComp.Aspects.Monitoring.UnitTests.LogMocks

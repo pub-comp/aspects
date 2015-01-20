@@ -9,6 +9,21 @@ namespace PubComp.Aspects.Monitoring.UnitTests
     [TestClass]
     public class LogAttributeTests
     {
+        private static CapturingLoggerFactoryAdapter logAdapter;
+
+        [ClassInitialize]
+        public static void ClassInitialize(TestContext testContext)
+        {
+            logAdapter = new CapturingLoggerFactoryAdapter();
+            Common.Logging.LogManager.Adapter = logAdapter;
+        }
+
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            logAdapter.Clear();
+        }
+
         [TestMethod]
         public void TestLogEntryExit_AspectOnMethod()
         {
@@ -51,12 +66,42 @@ namespace PubComp.Aspects.Monitoring.UnitTests
             TestLogEntryException(target);
         }
 
+        [TestMethod]
+        public void TestLogAutoName()
+        {
+            const string expectedLogName = "PubComp.Aspects.Monitoring.UnitTests.LogMocks.LoggedMockA";
+
+            var target = new LoggedMockA();
+
+            try
+            {
+                target.ThrowSomething();
+            }
+            catch (ApplicationException)
+            {
+            }
+
+            Assert.AreEqual(2, logAdapter.LoggerEvents.Count);
+            Assert.AreEqual(expectedLogName, logAdapter.LoggerEvents[0].Source.Name);
+            Assert.AreEqual(expectedLogName, logAdapter.LoggerEvents[1].Source.Name);
+        }
+
+        [TestMethod]
+        public void TestLogExplicitName()
+        {
+            const string expectedLogName = "MyLog";
+
+            var target = new LoggedMockA();
+
+            target.Other();
+
+            Assert.AreEqual(2, logAdapter.LoggerEvents.Count);
+            Assert.AreEqual(expectedLogName, logAdapter.LoggerEvents[0].Source.Name);
+            Assert.AreEqual(expectedLogName, logAdapter.LoggerEvents[1].Source.Name);
+        }
+
         private void TestLogEntryExit(ILoggedMock target)
         {
-            var logAdapter = new CapturingLoggerFactoryAdapter();
-            Common.Logging.LogManager.Adapter = logAdapter;
-            logAdapter.Clear();
-
             target.Short();
 
             Assert.AreEqual(2, logAdapter.LoggerEvents.Count);
@@ -66,10 +111,6 @@ namespace PubComp.Aspects.Monitoring.UnitTests
 
         private void TestLogEntryException(ILoggedMock target)
         {
-            var logAdapter = new CapturingLoggerFactoryAdapter();
-            Common.Logging.LogManager.Adapter = logAdapter;
-            logAdapter.Clear();
-
             bool caughtException = false;
 
             try
