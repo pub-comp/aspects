@@ -1,10 +1,12 @@
 ﻿using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using PostSharp.Extensibility;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
+using PubComp.Aspects.Monitoring;
+
 [assembly: AssemblyTitle("Monitoring.UnitTests")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
@@ -33,3 +35,16 @@ using System.Runtime.InteropServices;
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.0.0.0")]
+
+[assembly: Log(AttributeExclude = true, AttributeTargetMembers = @"regex:get_.*|set_.*")]
+
+[assembly: Log(AttributeExclude = true, AttributeTargetElements = MulticastTargets.InstanceConstructor)]
+
+[assembly: Log(
+    AttributeExclude = false,
+    AttributeTargetTypes = "PubComp.Aspects.Monitoring.UnitTests.LogMocks.Mocks2.*",
+    AttributeTargetElements = MulticastTargets.Method,
+    AttributeTargetParameterAttributes =
+        MulticastAttributes.Instance | MulticastAttributes.Public
+    )]
+

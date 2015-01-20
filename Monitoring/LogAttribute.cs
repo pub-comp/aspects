@@ -3,16 +3,13 @@ using System.Linq;
 using Common.Logging;
 using Newtonsoft.Json;
 using PostSharp.Aspects;
-using System.Diagnostics;
-using System.Threading;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 
 namespace PubComp.Aspects.Monitoring
 {
     [Serializable]
     public class LogAttribute : MethodInterceptionAspect
     {
+        private string className;
         private string fullMethodName;
         private readonly LogLevel exceptionLogLevel;
         private ILog log;
@@ -40,10 +37,7 @@ namespace PubComp.Aspects.Monitoring
         public override void CompileTimeInitialize(System.Reflection.MethodBase method, AspectInfo aspectInfo)
         {
             // ReSharper disable once PossibleNullReferenceException
-            var className = method.DeclaringType.FullName;
-
-            if (this.log == null)
-                this.log = LogManager.GetLogger(className);
+            this.className = method.DeclaringType.FullName;
 
             var parameterTypes = string.Join(", ", method.GetParameters().Select(p => p.ParameterType.FullName).ToArray());
 
@@ -52,6 +46,9 @@ namespace PubComp.Aspects.Monitoring
 
         public override void OnInvoke(MethodInterceptionArgs args)
         {
+            if (this.log == null)
+                this.log = LogManager.GetLogger(this.className);
+
             if (this.log == null)
             {
                 base.OnInvoke(args);
@@ -63,6 +60,7 @@ namespace PubComp.Aspects.Monitoring
             try
             {
                 base.OnInvoke(args);
+
                 log.Trace(string.Concat("Exiting method: ", this.fullMethodName));
             }
             catch (Exception ex)

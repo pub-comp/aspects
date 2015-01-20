@@ -14,6 +14,7 @@ namespace PubComp.Aspects.Monitoring
     public class MonitorAttribute : MethodInterceptionAspect
     {
         private string fullMethodName;
+        private string className;
 
         #region Logging
 
@@ -34,29 +35,15 @@ namespace PubComp.Aspects.Monitoring
         private double weighedAverage;
         private readonly double Factor = 0.25;
         private readonly SpinMonitor spinMonitor = new SpinMonitor();
-        private readonly Stopwatch stopWatch = new Stopwatch();
         private int hasBeenInitialized = 0;
         private static readonly ConcurrentDictionary<string, MonitorAttribute> monitors
             = new ConcurrentDictionary<string, MonitorAttribute>();
 
-        private void Enter()
-        {
-            Interlocked.Increment(ref entries);
-            this.stopWatch.Start();
-        }
-
-        private double Leave(bool failure = false)
-        {
-            this.stopWatch.Stop();
-            var duration = spinMonitor.InMonitor(() => UpdateStatistics(failure));
-            return duration;
-        }
-
-        private double UpdateStatistics(bool failure)
+        private double UpdateStatistics(double elaspedMilliseconds, bool failure)
         {
             exits++;
             if (failure) failures++;
-            var duration = this.stopWatch.Elapsed.TotalMilliseconds;
+            var duration = elaspedMilliseconds;
             totalDuration += duration;
             maxDuration = Math.Max(maxDuration, duration);
             lastDuration = duration;
@@ -126,10 +113,7 @@ namespace PubComp.Aspects.Monitoring
         public override void CompileTimeInitialize(System.Reflection.MethodBase method, AspectInfo aspectInfo)
         {
             // ReSharper disable once PossibleNullReferenceException
-            var className = method.DeclaringType.FullName;
-
-            if (this.log == null)
-                this.log = LogManager.GetLogger(className);
+            className = method.DeclaringType.FullName;
 
             var parameterTypes = string.Join(", ", method.GetParameters().Select(p => p.ParameterType.FullName).ToArray());
 
@@ -141,33 +125,56 @@ namespace PubComp.Aspects.Monitoring
             if (Interlocked.CompareExchange(ref hasBeenInitialized, 1, 0) == 0)
                 monitors.GetOrAdd(this.fullMethodName, this);
 
+            var stopwatch = new Stopwatch();
+
+            Interlocked.Increment(ref entries);
+
+            if (this.log == null)
+                this.log = LogManager.GetLogger(className);
+
             if (this.log == null)
             {
                 try
                 {
-                    Enter();
+                    stopwatch.Start();
+
                     base.OnInvoke(args);
+
+                    var elapsedMilliseconds = stopwatch.Elapsed.TotalMilliseconds;
+                    stopwatch.Stop();
+                    spinMonitor.InMonitor(() => UpdateStatistics(elapsedMilliseconds, false));
+
+                    return;
                 }
-                finally
+                catch (Exception)
                 {
-                    Leave();
+                    var elapsedMilliseconds = stopwatch.Elapsed.TotalMilliseconds;
+                    stopwatch.Stop();
+                    spinMonitor.InMonitor(() => UpdateStatistics(elapsedMilliseconds, true));
+                    
+                    throw;
                 }
-                return;
             }
 
             log.Trace(string.Concat("Entering method: ", this.fullMethodName));
 
-            Enter();
+            stopwatch.Start();
 
             try
             {
                 base.OnInvoke(args);
-                Leave();
+
+                var elapsedMilliseconds = stopwatch.Elapsed.TotalMilliseconds;
+                stopwatch.Stop();
+                spinMonitor.InMonitor(() => UpdateStatistics(elapsedMilliseconds, false));
+
                 log.Trace(string.Concat("Exiting method: ", this.fullMethodName));
             }
             catch (Exception ex)
             {
-                Leave(true);
+                var elapsedMilliseconds = stopwatch.Elapsed.TotalMilliseconds;
+                stopwatch.Stop();
+                spinMonitor.InMonitor(() => UpdateStatistics(elapsedMilliseconds, true));
 
                 string message = doLogValuesOnException
                     ? string.Concat("Exception in method: ", this.fullMethodName, ", values: ",

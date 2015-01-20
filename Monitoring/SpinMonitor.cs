@@ -18,6 +18,7 @@ namespace PubComp.Aspects.Monitoring
     /// 
     /// This class is thread safe.
     /// </remarks>
+    [Serializable]
     public class SpinMonitor
     {
         private long threadId;

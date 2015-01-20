@@ -68,7 +68,13 @@
     <Compile Include="..\VersionInfo.cs">
       <Link>Properties\VersionInfo.cs</Link>
     </Compile>
+    <Compile Include="LogMocks\ILoggedMock.cs" />
     <Compile Include="MonitorAttributeTests.cs" />
+    <Compile Include="LogMocks\Mocks2\LoggedMockC.cs" />
+    <Compile Include="LogAttributeTests.cs" />
+    <Compile Include="LogMocks\LoggedMockB.cs" />
+    <Compile Include="LogMocks\LoggedMockA.cs" />
+    <Compile Include="MonitorMocks\MonitoredMock.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SpinMonitorTests.cs" />
   </ItemGroup>
@@ -79,6 +85,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <Choose>
