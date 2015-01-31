@@ -3,3 +3,6 @@
 
 1.1.0:
     * Added optional parameters for overriding enter/exit log level and log of values
+
+1.1.1:
+    * Improved log initialization

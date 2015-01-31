@@ -22,7 +22,7 @@ namespace PubComp.Aspects.Monitoring
         private ILog log;
         private readonly bool doLogValuesOnException;
         private readonly bool doLogValuesOnEnterExit;
-        private int initialized = 0;
+        private long initialized = 0L;
         [NonSerialized]
         private Action<string> logEnterExit;
         [NonSerialized]
@@ -161,9 +161,10 @@ namespace PubComp.Aspects.Monitoring
 
             state.IncrementEntries();
 
-            if (Interlocked.CompareExchange(ref initialized, 1, 0) == 0)
+            if (Interlocked.Read(ref initialized) == 0L)
             {
                 InitializeLogger();
+                Interlocked.Exchange(ref initialized, 1L);
             }
 
             if (this.log == null)
