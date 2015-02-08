@@ -6,3 +6,6 @@
 
 1.1.1:
     * Improved log initialization
+
+1.2.0:
+    Added LogExceptionsAttribute which can also be applied to constructors

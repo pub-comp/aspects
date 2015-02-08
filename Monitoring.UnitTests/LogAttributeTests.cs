@@ -100,6 +100,32 @@ namespace PubComp.Aspects.Monitoring.UnitTests
             Assert.AreEqual(expectedLogName, logAdapter.LoggerEvents[1].Source.Name);
         }
 
+        [TestMethod]
+        public void TestLogConstructorExceptions_NoExeption()
+        {
+            var target = new LoggedMockA(false);
+            Assert.AreEqual(0, logAdapter.LoggerEvents.Count);
+        }
+
+        [TestMethod]
+        public void TestLogConstructorExceptions_Exception()
+        {
+            bool didCatchException = false;
+
+            try
+            {
+                var target = new LoggedMockA(true);
+            }
+            catch (ApplicationException)
+            {
+                didCatchException = true;
+            }
+
+            Assert.AreEqual(1, logAdapter.LoggerEvents.Count, "No log written");
+            Assert.AreEqual(Common.Logging.LogLevel.Error, logAdapter.LoggerEvents[0].Level, "Log level is not Error");
+            Assert.IsTrue(didCatchException, "Exception was not rethrown");
+        }
+
         private void TestLogEntryExit(ILoggedMock target)
         {
             target.Short();

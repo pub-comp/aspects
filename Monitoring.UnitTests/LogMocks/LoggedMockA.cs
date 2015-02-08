@@ -4,6 +4,13 @@ namespace PubComp.Aspects.Monitoring.UnitTests.LogMocks
 {
     public class LoggedMockA : ILoggedMock
     {
+        [LogExceptions]
+        public LoggedMockA(bool doThrow = false)
+        {
+            if (doThrow)
+                throw new ApplicationException();
+        }
+
         [Log]
         public void ThrowSomething()
         {

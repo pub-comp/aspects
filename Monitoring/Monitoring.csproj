@@ -61,6 +61,7 @@
     <Compile Include="..\VersionInfo.cs">
       <Link>Properties\VersionInfo.cs</Link>
     </Compile>
+    <Compile Include="LogExceptionsAttribute.cs" />
     <Compile Include="LogAttribute.cs" />
     <Compile Include="MonitorStatistics.cs" />
     <Compile Include="MonitorAttribute.cs" />
