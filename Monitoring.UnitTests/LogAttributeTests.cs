@@ -1,6 +1,7 @@
 ﻿using System;
-using Common.Logging.Simple;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NLog;
+using NLog.Targets;
 using PubComp.Aspects.Monitoring.UnitTests.LogMocks;
 using PubComp.Aspects.Monitoring.UnitTests.LogMocks.Mocks2;
 
@@ -9,19 +10,18 @@ namespace PubComp.Aspects.Monitoring.UnitTests
     [TestClass]
     public class LogAttributeTests
     {
-        private static CapturingLoggerFactoryAdapter logAdapter;
+        private static MemoryTarget logList;
 
         [ClassInitialize]
         public static void ClassInitialize(TestContext testContext)
         {
-            logAdapter = new CapturingLoggerFactoryAdapter();
-            Common.Logging.LogManager.Adapter = logAdapter;
+            logList = ((MemoryTarget)LogManager.Configuration.FindTargetByName("testTarget"));
         }
 
         [TestInitialize]
         public void TestInitialize()
         {
-            logAdapter.Clear();
+            logList.Logs.Clear();
         }
 
         [TestMethod]
@@ -80,10 +80,10 @@ namespace PubComp.Aspects.Monitoring.UnitTests
             catch (ApplicationException)
             {
             }
-
-            Assert.AreEqual(2, logAdapter.LoggerEvents.Count);
-            Assert.AreEqual(expectedLogName, logAdapter.LoggerEvents[0].Source.Name);
-            Assert.AreEqual(expectedLogName, logAdapter.LoggerEvents[1].Source.Name);
+            
+            Assert.AreEqual(2, logList.Logs.Count);
+            Assert.AreEqual(expectedLogName, logList.Logs[0].GetLogName());
+            Assert.AreEqual(expectedLogName, logList.Logs[1].GetLogName());
         }
 
         [TestMethod]
@@ -95,16 +95,16 @@ namespace PubComp.Aspects.Monitoring.UnitTests
 
             target.Other();
 
-            Assert.AreEqual(2, logAdapter.LoggerEvents.Count);
-            Assert.AreEqual(expectedLogName, logAdapter.LoggerEvents[0].Source.Name);
-            Assert.AreEqual(expectedLogName, logAdapter.LoggerEvents[1].Source.Name);
+            Assert.AreEqual(2, logList.Logs.Count);
+            Assert.AreEqual(expectedLogName, logList.Logs[0].GetLogName());
+            Assert.AreEqual(expectedLogName, logList.Logs[1].GetLogName());
         }
 
         [TestMethod]
         public void TestLogConstructorExceptions_NoExeption()
         {
             var target = new LoggedMockA(false);
-            Assert.AreEqual(0, logAdapter.LoggerEvents.Count);
+            Assert.AreEqual(0, logList.Logs.Count);
         }
 
         [TestMethod]
@@ -121,8 +121,8 @@ namespace PubComp.Aspects.Monitoring.UnitTests
                 didCatchException = true;
             }
 
-            Assert.AreEqual(1, logAdapter.LoggerEvents.Count, "No log written");
-            Assert.AreEqual(Common.Logging.LogLevel.Error, logAdapter.LoggerEvents[0].Level, "Log level is not Error");
+            Assert.AreEqual(1, logList.Logs.Count, "No log written");
+            Assert.AreEqual(LogLevel.Error, logList.Logs[0].GetLevel(), "Log level is not Error");
             Assert.IsTrue(didCatchException, "Exception was not rethrown");
         }
 
@@ -130,9 +130,9 @@ namespace PubComp.Aspects.Monitoring.UnitTests
         {
             target.Short();
 
-            Assert.AreEqual(2, logAdapter.LoggerEvents.Count);
-            Assert.AreEqual(Common.Logging.LogLevel.Trace, logAdapter.LoggerEvents[0].Level);
-            Assert.AreEqual(Common.Logging.LogLevel.Trace, logAdapter.LoggerEvents[1].Level);
+            Assert.AreEqual(2, logList.Logs.Count);
+            Assert.AreEqual(LogLevel.Trace, logList.Logs[0].GetLevel());
+            Assert.AreEqual(LogLevel.Trace, logList.Logs[1].GetLevel());
         }
 
         private void TestLogEntryException(ILoggedMock target)
@@ -150,9 +150,9 @@ namespace PubComp.Aspects.Monitoring.UnitTests
 
             Assert.IsTrue(caughtException);
 
-            Assert.AreEqual(2, logAdapter.LoggerEvents.Count);
-            Assert.AreEqual(Common.Logging.LogLevel.Trace, logAdapter.LoggerEvents[0].Level);
-            Assert.AreEqual(Common.Logging.LogLevel.Error, logAdapter.LoggerEvents[1].Level);
+            Assert.AreEqual(2, logList.Logs.Count);
+            Assert.AreEqual(LogLevel.Trace, logList.Logs[0].GetLevel());
+            Assert.AreEqual(LogLevel.Error, logList.Logs[1].GetLevel());
         }
     }
 }

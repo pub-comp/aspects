@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Linq;
 using System.Threading;
-using Common.Logging;
 using Newtonsoft.Json;
+using NLog;
 using PostSharp.Aspects;
 
 namespace PubComp.Aspects.Monitoring
@@ -13,12 +13,13 @@ namespace PubComp.Aspects.Monitoring
         private string className;
         private string fullMethodName;
         private string logName;
-        private ILog log;
+        [NonSerialized]
+        private Logger log;
         private readonly bool doLogValuesOnException;
         private long initialized = 0L;
         [NonSerialized]
         private Action<string, Exception> logException;
-        private readonly LogLevel exceptionLogLevel;
+        private readonly LogLevelValue exceptionLogLevel;
 
         /// <summary>
         /// Creates a new LogExceptionsAttribute
@@ -30,7 +31,7 @@ namespace PubComp.Aspects.Monitoring
         /// Exceptions are rethrown (using throw;)
         /// </remarks>
         public LogExceptionsAttribute(string logName = null,
-            LogLevel exceptionLogLevel = LogLevel.Error, bool doLogValuesOnException = true)
+            LogLevelValue exceptionLogLevel = LogLevelValue.Error, bool doLogValuesOnException = true)
         {
             this.logName = logName;
             this.doLogValuesOnException = doLogValuesOnException;
@@ -53,28 +54,7 @@ namespace PubComp.Aspects.Monitoring
         private void InitializeLogger()
         {
             this.log = LogManager.GetLogger(this.logName);
-
-            switch (exceptionLogLevel)
-            {
-                case LogLevel.Fatal:
-                    logException = (msg, ex) => this.log.Fatal(msg, ex);
-                    break;
-                case LogLevel.Error:
-                    logException = (msg, ex) => this.log.Error(msg, ex);
-                    break;
-                case LogLevel.Warn:
-                    logException = (msg, ex) => this.log.Warn(msg, ex);
-                    break;
-                case LogLevel.Info:
-                    logException = (msg, ex) => this.log.Info(msg, ex);
-                    break;
-                case LogLevel.Debug:
-                    logException = (msg, ex) => this.log.Debug(msg, ex);
-                    break;
-                default:
-                    logException = (msg, ex) => this.log.Trace(msg, ex);
-                    break;
-            }
+            logException = (msg, ex) => this.log.Log(exceptionLogLevel.ToNLog(), ex, msg);
         }
 
         public override void OnException(MethodExecutionArgs args)

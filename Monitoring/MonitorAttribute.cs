@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Linq;
-using Common.Logging;
 using Newtonsoft.Json;
 using PostSharp.Aspects;
 using System.Diagnostics;
 using System.Threading;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using NLog;
 
 namespace PubComp.Aspects.Monitoring
 {
@@ -19,7 +19,8 @@ namespace PubComp.Aspects.Monitoring
         #region Logging
 
         private string logName;
-        private ILog log;
+        [NonSerialized]
+        private Logger log;
         private readonly bool doLogValuesOnException;
         private readonly bool doLogValuesOnEnterExit;
         private long initialized = 0L;
@@ -29,8 +30,8 @@ namespace PubComp.Aspects.Monitoring
         private Action<string, Exception> logException;
         private string enterMessage;
         private string exitMessage;
-        private readonly LogLevel exceptionLogLevel;
-        private readonly LogLevel enterExistLogLevel;
+        private readonly LogLevelValue exceptionLogLevel;
+        private readonly LogLevelValue enterExistLogLevel;
 
         #endregion
 
@@ -79,8 +80,8 @@ namespace PubComp.Aspects.Monitoring
         /// Exceptions are rethrown (using throw;)
         /// </remarks>
         public MonitorAttribute(string logName = null,
-            LogLevel exceptionLogLevel = LogLevel.Error, bool doLogValuesOnException = true,
-            LogLevel enterExistLogLevel = LogLevel.Trace, bool doLogValuesOnEnterExit = false)
+            LogLevelValue exceptionLogLevel = LogLevelValue.Error, bool doLogValuesOnException = true,
+            LogLevelValue enterExistLogLevel = LogLevelValue.Trace, bool doLogValuesOnEnterExit = false)
         {
             this.logName = logName;
             this.doLogValuesOnException = doLogValuesOnException;
@@ -108,49 +109,8 @@ namespace PubComp.Aspects.Monitoring
         private void InitializeLogger()
         {
             this.log = LogManager.GetLogger(this.logName);
-            switch (enterExistLogLevel)
-            {
-                case LogLevel.Fatal:
-                    logEnterExit = msg => this.log.Fatal(msg);
-                    break;
-                case LogLevel.Error:
-                    logEnterExit = msg => this.log.Error(msg);
-                    break;
-                case LogLevel.Warn:
-                    logEnterExit = msg => this.log.Warn(msg);
-                    break;
-                case LogLevel.Info:
-                    logEnterExit = msg => this.log.Info(msg);
-                    break;
-                case LogLevel.Debug:
-                    logEnterExit = msg => this.log.Debug(msg);
-                    break;
-                default:
-                    logEnterExit = msg => this.log.Trace(msg);
-                    break;
-            }
-
-            switch (exceptionLogLevel)
-            {
-                case LogLevel.Fatal:
-                    logException = (msg, ex) => this.log.Fatal(msg, ex);
-                    break;
-                case LogLevel.Error:
-                    logException = (msg, ex) => this.log.Error(msg, ex);
-                    break;
-                case LogLevel.Warn:
-                    logException = (msg, ex) => this.log.Warn(msg, ex);
-                    break;
-                case LogLevel.Info:
-                    logException = (msg, ex) => this.log.Info(msg, ex);
-                    break;
-                case LogLevel.Debug:
-                    logException = (msg, ex) => this.log.Debug(msg, ex);
-                    break;
-                default:
-                    logException = (msg, ex) => this.log.Trace(msg, ex);
-                    break;
-            }
+            this.logEnterExit = msg => this.log.Log(enterExistLogLevel.ToNLog(), msg);
+            this.logException = (msg, ex) => this.log.Log(exceptionLogLevel.ToNLog(), ex, msg);
         }
 
         public override void OnInvoke(MethodInterceptionArgs args)
