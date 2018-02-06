@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PubComp.Aspects.Monitoring.UnitTests.MonitorMocks;
 
@@ -53,6 +54,66 @@ namespace PubComp.Aspects.Monitoring.UnitTests
             try
             {
                 target.ThrowSomething();
+            }
+            catch (ApplicationException)
+            {
+                caughtException = true;
+            }
+
+            Assert.IsTrue(caughtException);
+
+            var stats = MonitorAttribute.GetStatistics(expectedName);
+
+            Assert.AreEqual(1, stats.Entries);
+            Assert.AreEqual(1, stats.Exits);
+            Assert.AreEqual(1, stats.Failures);
+        }
+
+        [TestMethod]
+        public async Task TestLogEntryExit_Async_AspectOnMethod()
+        {
+            const string expectedName = "PubComp.Aspects.Monitoring.UnitTests.MonitorMocks.MonitoredAsyncMock.LongAsync()";
+
+            var target = new MonitoredAsyncMock();
+
+            await target.LongAsync();
+
+            var names = MonitorAttribute.GetMonitorNames();
+            Assert.IsTrue(names.Contains(expectedName));
+
+            var stats = MonitorAttribute.GetStatistics(expectedName);
+
+            Assert.AreEqual(1, stats.Entries);
+            Assert.AreEqual(1, stats.Exits);
+            Assert.AreEqual(0, stats.Failures);
+            Assert.IsTrue(stats.AverageDuration >= 90.0);
+            Assert.IsTrue(stats.TotalDuration >= 90.0);
+            Assert.IsTrue(stats.LastDuration >= 90.0);
+
+            await target.LongAsync();
+
+            stats = MonitorAttribute.GetStatistics(expectedName);
+
+            Assert.AreEqual(2, stats.Entries);
+            Assert.AreEqual(2, stats.Exits);
+            Assert.AreEqual(0, stats.Failures);
+            Assert.IsTrue(stats.AverageDuration >= 90.0);
+            Assert.IsTrue(stats.TotalDuration >= 180.0);
+            Assert.IsTrue(stats.LastDuration >= 90.0);
+        }
+
+        [TestMethod]
+        public async Task TestLogEntryException_Async_AspectOnMethod()
+        {
+            const string expectedName = "PubComp.Aspects.Monitoring.UnitTests.MonitorMocks.MonitoredAsyncMock.ThrowSomethingAsync()";
+
+            var target = new MonitoredAsyncMock();
+
+            bool caughtException = false;
+
+            try
+            {
+                await target.ThrowSomethingAsync();
             }
             catch (ApplicationException)
             {

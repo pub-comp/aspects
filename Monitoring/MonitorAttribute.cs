@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using NLog;
 
 namespace PubComp.Aspects.Monitoring
@@ -135,16 +136,16 @@ namespace PubComp.Aspects.Monitoring
 
                     base.OnInvoke(args);
 
-                    var elapsedMilliseconds = stopwatch.Elapsed.TotalMilliseconds;
                     stopwatch.Stop();
+                    var elapsedMilliseconds = stopwatch.Elapsed.TotalMilliseconds;
                     state.UpdateStatistics(elapsedMilliseconds, false);
 
                     return;
                 }
                 catch (Exception)
                 {
-                    var elapsedMilliseconds = stopwatch.Elapsed.TotalMilliseconds;
                     stopwatch.Stop();
+                    var elapsedMilliseconds = stopwatch.Elapsed.TotalMilliseconds;
                     state.UpdateStatistics(elapsedMilliseconds, true);
                     
                     throw;
@@ -172,16 +173,16 @@ namespace PubComp.Aspects.Monitoring
             {
                 base.OnInvoke(args);
 
-                var elapsedMilliseconds = stopwatch.Elapsed.TotalMilliseconds;
                 stopwatch.Stop();
+                var elapsedMilliseconds = stopwatch.Elapsed.TotalMilliseconds;
                 state.UpdateStatistics(elapsedMilliseconds, false);
 
                 this.logEnterExit(exit);
             }
             catch (Exception ex)
             {
-                var elapsedMilliseconds = stopwatch.Elapsed.TotalMilliseconds;
                 stopwatch.Stop();
+                var elapsedMilliseconds = stopwatch.Elapsed.TotalMilliseconds;
                 state.UpdateStatistics(elapsedMilliseconds, true);
 
                 string message = doLogValuesOnException
@@ -195,6 +196,87 @@ namespace PubComp.Aspects.Monitoring
             }
         }
 
+        public override async Task OnInvokeAsync(MethodInterceptionArgs args)
+        {
+            var state = Monitors.GetOrAdd(this.fullMethodName, x => new MonitorState());
+
+            var stopwatch = new Stopwatch();
+
+            state.IncrementEntries();
+
+            if (Interlocked.Read(ref initialized) == 0L)
+            {
+                InitializeLogger();
+                Interlocked.Exchange(ref initialized, 1L);
+            }
+
+            if (this.log == null)
+            {
+                try
+                {
+                    stopwatch.Start();
+
+                    await base.OnInvokeAsync(args);
+
+                    stopwatch.Stop();
+                    var elapsedMilliseconds = stopwatch.Elapsed.TotalMilliseconds;
+                    state.UpdateStatistics(elapsedMilliseconds, false);
+
+                    return;
+                }
+                catch (Exception)
+                {
+                    stopwatch.Stop();
+                    var elapsedMilliseconds = stopwatch.Elapsed.TotalMilliseconds;
+                    state.UpdateStatistics(elapsedMilliseconds, true);
+
+                    throw;
+                }
+            }
+
+            string enter, exit;
+            if (this.doLogValuesOnEnterExit)
+            {
+                var values = JsonConvert.SerializeObject(args.Arguments.ToArray());
+                enter = string.Concat(this.enterMessage, ", values: ", values);
+                exit = string.Concat(this.exitMessage, ", values: ", values);
+            }
+            else
+            {
+                enter = this.enterMessage;
+                exit = this.exitMessage;
+            }
+
+            this.logEnterExit(enter);
+
+            stopwatch.Start();
+
+            try
+            {
+                await base.OnInvokeAsync(args);
+
+                stopwatch.Stop();
+                var elapsedMilliseconds = stopwatch.Elapsed.TotalMilliseconds;
+                state.UpdateStatistics(elapsedMilliseconds, false);
+
+                this.logEnterExit(exit);
+            }
+            catch (Exception ex)
+            {
+                stopwatch.Stop();
+                var elapsedMilliseconds = stopwatch.Elapsed.TotalMilliseconds;
+                state.UpdateStatistics(elapsedMilliseconds, true);
+
+                string message = doLogValuesOnException
+                    ? string.Concat("Exception in method: ", this.fullMethodName, ", values: ",
+                            JsonConvert.SerializeObject(args.Arguments.ToArray()))
+                    : string.Concat("Exception in method: ", this.fullMethodName);
+
+                this.logException(message, ex);
+
+                throw;
+            }
+        }
         #region Inner Types
 
         private class MonitorState
