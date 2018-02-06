@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NLog;
 using PostSharp.Aspects;
@@ -113,6 +114,54 @@ namespace PubComp.Aspects.Monitoring
                 string message = doLogValuesOnException
                     ? string.Concat("Exception in method: ", this.fullMethodName, ", values: ",
                             JsonConvert.SerializeObject(args.Arguments.ToArray()))
+                    : string.Concat("Exception in method: ", this.fullMethodName);
+
+                this.logException(message, ex);
+
+                throw;
+            }
+        }
+
+        public override async Task OnInvokeAsync(MethodInterceptionArgs args)
+        {
+            if (Interlocked.Read(ref initialized) == 0L)
+            {
+                InitializeLogger();
+                Interlocked.Exchange(ref initialized, 1L);
+            }
+
+            if (this.log == null)
+            {
+                await base.OnInvokeAsync(args);
+                return;
+            }
+
+            string enter, exit;
+            if (this.doLogValuesOnEnterExit)
+            {
+                var values = JsonConvert.SerializeObject(args.Arguments.ToArray());
+                enter = string.Concat(this.enterMessage, ", values: ", values);
+                exit = string.Concat(this.exitMessage, ", values: ", values);
+            }
+            else
+            {
+                enter = this.enterMessage;
+                exit = this.exitMessage;
+            }
+
+            this.logEnterExit(enter);
+
+            try
+            {
+                await base.OnInvokeAsync(args);
+
+                this.logEnterExit(exit);
+            }
+            catch (Exception ex)
+            {
+                string message = doLogValuesOnException
+                    ? string.Concat("Exception in method: ", this.fullMethodName, ", values: ",
+                        JsonConvert.SerializeObject(args.Arguments.ToArray()))
                     : string.Concat("Exception in method: ", this.fullMethodName);
 
                 this.logException(message, ex);

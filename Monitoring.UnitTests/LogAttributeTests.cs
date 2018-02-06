@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NLog;
 using NLog.Targets;
@@ -142,6 +143,111 @@ namespace PubComp.Aspects.Monitoring.UnitTests
             try
             {
                 target.ThrowSomething();
+            }
+            catch (ApplicationException)
+            {
+                caughtException = true;
+            }
+
+            Assert.IsTrue(caughtException);
+
+            Assert.AreEqual(2, logList.Logs.Count);
+            Assert.AreEqual(LogLevel.Trace, logList.Logs[0].GetLevel());
+            Assert.AreEqual(LogLevel.Error, logList.Logs[1].GetLevel());
+        }
+
+        [TestMethod]
+        public async Task TestLogEntryExit_Async_AspectOnMethod()
+        {
+            var target = new LoggedAsyncMockA();
+            await TestLogEntryExitAsync(target);
+        }
+
+        [TestMethod]
+        public async Task TestLogEntryException_Async_AspectOnMethod()
+        {
+            var target = new LoggedAsyncMockA();
+            await TestLogEntryExceptionAsync(target);
+        }
+
+        [TestMethod]
+        public async Task TestLogAutoName_Async()
+        {
+            const string expectedLogName = "PubComp.Aspects.Monitoring.UnitTests.LogMocks.LoggedAsyncMockA";
+
+            var target = new LoggedAsyncMockA();
+
+            try
+            {
+                await target.ThrowSomethingAsync();
+            }
+            catch (ApplicationException)
+            {
+            }
+
+            Assert.AreEqual(2, logList.Logs.Count);
+            Assert.AreEqual(expectedLogName, logList.Logs[0].GetLogName());
+            Assert.AreEqual(expectedLogName, logList.Logs[1].GetLogName());
+        }
+
+        [TestMethod]
+        public async Task TestLogExplicitName_Async()
+        {
+            const string expectedLogName = "MyLog";
+
+            var target = new LoggedAsyncMockA();
+
+            await target.OtherAsync();
+
+            Assert.AreEqual(2, logList.Logs.Count);
+            Assert.AreEqual(expectedLogName, logList.Logs[0].GetLogName());
+            Assert.AreEqual(expectedLogName, logList.Logs[1].GetLogName());
+        }
+
+        [TestMethod]
+        public async Task TestLogEntryExit_Async_AspectOnClass()
+        {
+            var target = new LoggedAsyncMockB();
+            await TestLogEntryExitAsync(target);
+        }
+
+        [TestMethod]
+        public async Task TestLogEntryException_Async_AspectOnClass()
+        {
+            var target = new LoggedAsyncMockB();
+            await TestLogEntryExceptionAsync(target);
+        }
+
+        [TestMethod]
+        public async Task TestLogEntryExit_Async_AspectOnAssembly()
+        {
+            var target = new LoggedAsyncMockC();
+            await TestLogEntryExitAsync(target);
+        }
+
+        [TestMethod]
+        public async Task TestLogEntryException_Async_AspectOnAssembly()
+        {
+            var target = new LoggedAsyncMockC();
+            await TestLogEntryExceptionAsync(target);
+        }
+
+        private async Task TestLogEntryExitAsync(ILoggedAsyncMock target)
+        {
+            await target.ShortAsync();
+
+            Assert.AreEqual(2, logList.Logs.Count);
+            Assert.AreEqual(LogLevel.Trace, logList.Logs[0].GetLevel());
+            Assert.AreEqual(LogLevel.Trace, logList.Logs[1].GetLevel());
+        }
+
+        private async Task TestLogEntryExceptionAsync(ILoggedAsyncMock target)
+        {
+            bool caughtException = false;
+
+            try
+            {
+                await target.ThrowSomethingAsync();
             }
             catch (ApplicationException)
             {

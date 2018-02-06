@@ -12,3 +12,7 @@
 
 2.0.0:
     Due to breaking change in Common.Logging.3.1.0 (LogLevel enum values changed), moved to NLog
+
+3.0.0:
+    Upgraded to PostSharp 5.0.44
+	Support aspects on Async Task methods
