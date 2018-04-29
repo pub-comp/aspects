@@ -70,8 +70,21 @@ namespace PubComp.Aspects.Monitoring
         private void InitializeLogger()
         {
             this.log = LogManager.GetLogger(this.logName);
-            logEnterExit = msg => this.log.Log(enterExistLogLevel.ToNLog(), msg);
-            logException = (msg, ex) => this.log.Log(exceptionLogLevel.ToNLog(), ex, msg);
+            this.logEnterExit = msg => this.log.Log(typeof(LogAttribute),
+                new LogEventInfo
+                {
+                    LoggerName = this.logName,
+                    Level = enterExistLogLevel.ToNLog(),
+                    Message = msg
+                });
+            this.logException = (msg, ex) => this.log.Log(typeof(LogAttribute),
+                new LogEventInfo
+                {
+                    LoggerName = this.logName,
+                    Level = exceptionLogLevel.ToNLog(),
+                    Message = msg,
+                    Exception = ex
+                });
         }
 
         public override void OnInvoke(MethodInterceptionArgs args)

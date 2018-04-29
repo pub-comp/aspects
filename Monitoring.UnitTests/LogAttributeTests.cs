@@ -125,6 +125,9 @@ namespace PubComp.Aspects.Monitoring.UnitTests
             Assert.AreEqual(1, logList.Logs.Count, "No log written");
             Assert.AreEqual(LogLevel.Error, logList.Logs[0].GetLevel(), "Log level is not Error");
             Assert.IsTrue(didCatchException, "Exception was not rethrown");
+
+            var expectedCallSite = $"{typeof(LoggedMockA).FullName}..ctor";
+            Assert.AreEqual(expectedCallSite, logList.Logs[0].GetCallSite());
         }
 
         private void TestLogEntryExit(ILoggedMock target)
@@ -134,6 +137,10 @@ namespace PubComp.Aspects.Monitoring.UnitTests
             Assert.AreEqual(2, logList.Logs.Count);
             Assert.AreEqual(LogLevel.Trace, logList.Logs[0].GetLevel());
             Assert.AreEqual(LogLevel.Trace, logList.Logs[1].GetLevel());
+
+            var expectedCallSite = $"{target.GetType().FullName}.{nameof(target.Short)}";
+            Assert.AreEqual(expectedCallSite, logList.Logs[0].GetCallSite());
+            Assert.AreEqual(expectedCallSite, logList.Logs[1].GetCallSite());
         }
 
         private void TestLogEntryException(ILoggedMock target)
@@ -154,6 +161,10 @@ namespace PubComp.Aspects.Monitoring.UnitTests
             Assert.AreEqual(2, logList.Logs.Count);
             Assert.AreEqual(LogLevel.Trace, logList.Logs[0].GetLevel());
             Assert.AreEqual(LogLevel.Error, logList.Logs[1].GetLevel());
+
+            var expectedCallSite = $"{target.GetType().FullName}.{nameof(target.ThrowSomething)}";
+            Assert.AreEqual(expectedCallSite, logList.Logs[0].GetCallSite());
+            Assert.AreEqual(expectedCallSite, logList.Logs[1].GetCallSite());
         }
 
         [TestMethod]

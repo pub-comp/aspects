@@ -54,7 +54,14 @@ namespace PubComp.Aspects.Monitoring
         private void InitializeLogger()
         {
             this.log = LogManager.GetLogger(this.logName);
-            logException = (msg, ex) => this.log.Log(exceptionLogLevel.ToNLog(), ex, msg);
+            this.logException = (msg, ex) => this.log.Log(typeof(LogExceptionsAttribute),
+                new LogEventInfo
+                {
+                    LoggerName = this.logName,
+                    Level = exceptionLogLevel.ToNLog(),
+                    Message = msg,
+                    Exception = ex
+                });
         }
 
         public override void OnException(MethodExecutionArgs args)
