@@ -16,3 +16,6 @@
 3.0.0:
     Upgraded to PostSharp 5.0.44
 	Support aspects on Async Task methods
+
+3.1.0:
+    Defined aspect as NLog log wrapper so that call site will be accurate
