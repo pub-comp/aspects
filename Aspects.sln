@@ -23,10 +23,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.tfignore = .tfignore
 		README.md = README.md
 		VersionHistory.txt = VersionHistory.txt
-		VersionInfo.cs = VersionInfo.cs
 	EndProjectSection
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Monitoring.NuGet", "Monitoring.NuGet\Monitoring.NuGet.csproj", "{AEA3D3AD-56C4-4811-806B-DE563E248138}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -42,10 +39,6 @@ Global
 		{8BE38599-1743-4E89-8E41-EA304DC58A28}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8BE38599-1743-4E89-8E41-EA304DC58A28}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8BE38599-1743-4E89-8E41-EA304DC58A28}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AEA3D3AD-56C4-4811-806B-DE563E248138}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AEA3D3AD-56C4-4811-806B-DE563E248138}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AEA3D3AD-56C4-4811-806B-DE563E248138}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AEA3D3AD-56C4-4811-806B-DE563E248138}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
