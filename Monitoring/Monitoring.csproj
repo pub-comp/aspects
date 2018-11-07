@@ -9,12 +9,11 @@
     <FileVersion>3.2.0.0</FileVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Folder Include="Properties\" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="NLog" Version="4.5.10" />
     <PackageReference Include="PostSharp" Version="6.0.28" />
-
   </ItemGroup>
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="&quot;$(SolutionDir).NuGetPack\NuGetPack.exe&quot; &quot;$(ProjectPath)&quot; &quot;$(TargetPath)&quot; $(ConfigurationName)" />
+  </Target>
 </Project>

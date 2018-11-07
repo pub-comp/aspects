@@ -19,3 +19,6 @@
 
 3.1.0:
     Defined aspect as NLog log wrapper so that call site will be accurate
+
+3.2.0:
+	Moved Monitoring to support .net Standard (keeping backwards compatability to .net Framework 4.5.1)
