@@ -20,6 +20,7 @@ namespace PubComp.Aspects.Monitoring
         [NonSerialized]
         private Action<string, Exception> logException;
         private readonly LogLevelValue exceptionLogLevel;
+        private readonly Type[] excludeTypes;
 
         /// <summary>
         /// Creates a new LogExceptionsAttribute
@@ -27,15 +28,28 @@ namespace PubComp.Aspects.Monitoring
         /// <param name="logName">Name of logger (from Common.Logging) to use, defaults to full class name of decorated class</param>
         /// <param name="exceptionLogLevel">Log level to use in case of exception, defaults to Error</param>
         /// <param name="doLogValuesOnException">Do log values of parameters passed to method in case of exception, defaults to true</param>
+        /// <param name="excludeTypes">Do not log exceptions of this type.</param>
         /// <remarks>
         /// Exceptions are rethrown (using throw;)
         /// </remarks>
         public LogExceptionsAttribute(string logName = null,
-            LogLevelValue exceptionLogLevel = LogLevelValue.Error, bool doLogValuesOnException = true)
+            LogLevelValue exceptionLogLevel = LogLevelValue.Error, bool doLogValuesOnException = true, params Type[] excludeTypes)
         {
             this.logName = logName;
             this.doLogValuesOnException = doLogValuesOnException;
             this.exceptionLogLevel = exceptionLogLevel;
+            this.excludeTypes = excludeTypes;
+        }
+
+        /// <summary>
+        /// Creates a new LogExceptionsAttribute
+        /// </summary>
+        /// <param name="excludeTypes">Do not log exceptions of this type.</param>
+        /// <remarks>
+        /// Exceptions are rethrown (using throw;)
+        /// </remarks>
+        public LogExceptionsAttribute(params Type[] excludeTypes) : this(null, LogLevelValue.Error, true, excludeTypes)
+        {
         }
 
         public override void CompileTimeInitialize(System.Reflection.MethodBase method, AspectInfo aspectInfo)
@@ -72,7 +86,7 @@ namespace PubComp.Aspects.Monitoring
                 Interlocked.Exchange(ref initialized, 1L);
             }
 
-            if (this.log != null)
+            if (this.log != null && ShouldLogExceptionType(args.Exception.GetType()))
             {
                 string message = doLogValuesOnException
                     ? string.Concat("Exception in method: ", this.fullMethodName, ", values: ",
@@ -81,6 +95,11 @@ namespace PubComp.Aspects.Monitoring
 
                 this.logException(message, args.Exception);
             }
+        }
+
+        private bool ShouldLogExceptionType(Type exceptionType)
+        {
+            return this.excludeTypes.All(excludeType => exceptionType != excludeType);
         }
     }
 }
