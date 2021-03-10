@@ -109,6 +109,24 @@ namespace PubComp.Aspects.Monitoring.UnitTests
         }
 
         [TestMethod]
+        public void TestLogConstructorExceptions_ExceptionExcludedFromLog_Exeption()
+        {
+            bool didCatchException = false;
+
+            try
+            {
+                var target = new LoggedMockD(true);
+            }
+            catch (ApplicationException)
+            {
+                didCatchException = true;
+            }
+
+            Assert.AreEqual(0, logList.Logs.Count, "A log written - the exception should have been excluded");
+            Assert.IsTrue(didCatchException, "Exception was not rethrown");
+        }
+
+        [TestMethod]
         public void TestLogConstructorExceptions_Exception()
         {
             bool didCatchException = false;
