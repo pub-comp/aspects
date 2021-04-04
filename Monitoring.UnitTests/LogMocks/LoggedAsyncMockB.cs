@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using PostSharp.Extensibility;
+using PubComp.Aspects.Monitoring.UnitTests.Objects;
 
 namespace PubComp.Aspects.Monitoring.UnitTests.LogMocks
 {
@@ -14,7 +15,7 @@ namespace PubComp.Aspects.Monitoring.UnitTests.LogMocks
             MulticastAttributes.Instance | MulticastAttributes.Public)]
     public class LoggedAsyncMockB : ILoggedAsyncMock
     {
-        public async Task ThrowSomethingAsync()
+        public async Task ThrowSomethingAsync(LoggableObject obj)
         {
             await Task.Delay(10);
             throw new ApplicationException("Something");

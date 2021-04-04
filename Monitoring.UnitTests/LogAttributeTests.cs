@@ -5,6 +5,7 @@ using NLog;
 using NLog.Targets;
 using PubComp.Aspects.Monitoring.UnitTests.LogMocks;
 using PubComp.Aspects.Monitoring.UnitTests.LogMocks.Mocks2;
+using PubComp.Aspects.Monitoring.UnitTests.Objects;
 
 namespace PubComp.Aspects.Monitoring.UnitTests
 {
@@ -76,7 +77,7 @@ namespace PubComp.Aspects.Monitoring.UnitTests
 
             try
             {
-                target.ThrowSomething();
+                target.ThrowSomething(null);
             }
             catch (ApplicationException)
             {
@@ -146,10 +147,15 @@ namespace PubComp.Aspects.Monitoring.UnitTests
         private void TestLogEntryException(ILoggedMock target)
         {
             bool caughtException = false;
+            var objWithIgnoredProp = new LoggableObject()
+            {
+                ShouldBeIgnored = "ignored123",
+                ShouldBeLogged = "logged123"
+            };
 
             try
             {
-                target.ThrowSomething();
+                target.ThrowSomething(objWithIgnoredProp);
             }
             catch (ApplicationException)
             {
@@ -165,6 +171,9 @@ namespace PubComp.Aspects.Monitoring.UnitTests
             var expectedCallSite = $"{target.GetType().FullName}.{nameof(target.ThrowSomething)}";
             Assert.AreEqual(expectedCallSite, logList.Logs[0].GetCallSite());
             Assert.AreEqual(expectedCallSite, logList.Logs[1].GetCallSite());
+
+            Assert.IsTrue(logList.Logs[1].GetMessage().Contains(objWithIgnoredProp.ShouldBeLogged));
+            Assert.IsFalse(logList.Logs[1].GetMessage().Contains(objWithIgnoredProp.ShouldBeIgnored));
         }
 
         [TestMethod]
@@ -190,7 +199,7 @@ namespace PubComp.Aspects.Monitoring.UnitTests
 
             try
             {
-                await target.ThrowSomethingAsync();
+                await target.ThrowSomethingAsync(null);
             }
             catch (ApplicationException)
             {
@@ -255,10 +264,15 @@ namespace PubComp.Aspects.Monitoring.UnitTests
         private async Task TestLogEntryExceptionAsync(ILoggedAsyncMock target)
         {
             bool caughtException = false;
+            var objWithIgnoredProp = new LoggableObject()
+            {
+                ShouldBeIgnored = "ignored123",
+                ShouldBeLogged = "logged123"
+            };
 
             try
             {
-                await target.ThrowSomethingAsync();
+                await target.ThrowSomethingAsync(objWithIgnoredProp);
             }
             catch (ApplicationException)
             {
@@ -270,6 +284,9 @@ namespace PubComp.Aspects.Monitoring.UnitTests
             Assert.AreEqual(2, logList.Logs.Count);
             Assert.AreEqual(LogLevel.Trace, logList.Logs[0].GetLevel());
             Assert.AreEqual(LogLevel.Error, logList.Logs[1].GetLevel());
+
+            Assert.IsTrue(logList.Logs[1].GetMessage().Contains(objWithIgnoredProp.ShouldBeLogged));
+            Assert.IsFalse(logList.Logs[1].GetMessage().Contains(objWithIgnoredProp.ShouldBeIgnored));
         }
     }
 }

@@ -1,8 +1,10 @@
-﻿namespace PubComp.Aspects.Monitoring.UnitTests.LogMocks
+﻿using PubComp.Aspects.Monitoring.UnitTests.Objects;
+
+namespace PubComp.Aspects.Monitoring.UnitTests.LogMocks
 {
     public interface ILoggedMock
     {
-        void ThrowSomething();
+        void ThrowSomething(LoggableObject obj);
 
         void Short();
     }
