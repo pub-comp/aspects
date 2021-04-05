@@ -5,7 +5,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AssemblyName>PubComp.Aspects.Monitoring</AssemblyName>
     <RootNamespace>PubComp.Aspects.Monitoring</RootNamespace>
-    <AssemblyVersion>3.3.0.0</AssemblyVersion>
+    <AssemblyVersion>3.2.0.0</AssemblyVersion>
     <FileVersion>3.3.0.0</FileVersion>
   </PropertyGroup>
   <ItemGroup>
