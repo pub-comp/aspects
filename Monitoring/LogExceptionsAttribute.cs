@@ -20,6 +20,7 @@ namespace PubComp.Aspects.Monitoring
         [NonSerialized]
         private Action<string, Exception> logException;
         private readonly LogLevelValue exceptionLogLevel;
+        private static readonly JsonSerializerSettings LogSerializerSettings = new JsonSerializerSettings { ContractResolver = new LoggableContractResolver() };
 
         /// <summary>
         /// Creates a new LogExceptionsAttribute
@@ -76,7 +77,7 @@ namespace PubComp.Aspects.Monitoring
             {
                 string message = doLogValuesOnException
                     ? string.Concat("Exception in method: ", this.fullMethodName, ", values: ",
-                            JsonConvert.SerializeObject(args.Arguments.ToArray()))
+                            JsonConvert.SerializeObject(args.Arguments.ToArray(), LogSerializerSettings))
                     : string.Concat("Exception in method: ", this.fullMethodName);
 
                 this.logException(message, args.Exception);

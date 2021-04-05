@@ -27,6 +27,7 @@ namespace PubComp.Aspects.Monitoring
         private string exitMessage;
         private readonly LogLevelValue exceptionLogLevel;
         private readonly LogLevelValue enterExistLogLevel;
+        private static readonly JsonSerializerSettings LogSerializerSettings = new JsonSerializerSettings { ContractResolver = new LoggableContractResolver() };
 
         /// <summary>
         /// Creates a new LogAttribute
@@ -104,7 +105,7 @@ namespace PubComp.Aspects.Monitoring
             string enter, exit;
             if (this.doLogValuesOnEnterExit)
             {
-                var values = JsonConvert.SerializeObject(args.Arguments.ToArray());
+                var values = JsonConvert.SerializeObject(args.Arguments.ToArray(), LogSerializerSettings);
                 enter = string.Concat(this.enterMessage, ", values: ", values);
                 exit = string.Concat(this.exitMessage, ", values: ", values);
             }
@@ -126,7 +127,7 @@ namespace PubComp.Aspects.Monitoring
             {
                 string message = doLogValuesOnException
                     ? string.Concat("Exception in method: ", this.fullMethodName, ", values: ",
-                            JsonConvert.SerializeObject(args.Arguments.ToArray()))
+                            JsonConvert.SerializeObject(args.Arguments.ToArray(), LogSerializerSettings))
                     : string.Concat("Exception in method: ", this.fullMethodName);
 
                 this.logException(message, ex);
@@ -152,7 +153,7 @@ namespace PubComp.Aspects.Monitoring
             string enter, exit;
             if (this.doLogValuesOnEnterExit)
             {
-                var values = JsonConvert.SerializeObject(args.Arguments.ToArray());
+                var values = JsonConvert.SerializeObject(args.Arguments.ToArray(), LogSerializerSettings);
                 enter = string.Concat(this.enterMessage, ", values: ", values);
                 exit = string.Concat(this.exitMessage, ", values: ", values);
             }
@@ -174,7 +175,7 @@ namespace PubComp.Aspects.Monitoring
             {
                 string message = doLogValuesOnException
                     ? string.Concat("Exception in method: ", this.fullMethodName, ", values: ",
-                        JsonConvert.SerializeObject(args.Arguments.ToArray()))
+                        JsonConvert.SerializeObject(args.Arguments.ToArray(), LogSerializerSettings))
                     : string.Concat("Exception in method: ", this.fullMethodName);
 
                 this.logException(message, ex);

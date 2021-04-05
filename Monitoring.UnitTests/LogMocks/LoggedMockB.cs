@@ -1,5 +1,6 @@
 ﻿using System;
 using PostSharp.Extensibility;
+using PubComp.Aspects.Monitoring.UnitTests.Objects;
 
 namespace PubComp.Aspects.Monitoring.UnitTests.LogMocks
 {
@@ -13,7 +14,7 @@ namespace PubComp.Aspects.Monitoring.UnitTests.LogMocks
             MulticastAttributes.Instance | MulticastAttributes.Public)]
     public class LoggedMockB : ILoggedMock
     {
-        public void ThrowSomething()
+        public void ThrowSomething(LoggableObject obj)
         {
             throw new ApplicationException("Something");
         }
