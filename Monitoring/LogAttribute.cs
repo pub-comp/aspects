@@ -193,7 +193,7 @@ namespace PubComp.Aspects.Monitoring
             if (this.doLogResultsOnExit)
             {
                 var values = JsonConvert.SerializeObject(args.ReturnValue, LogSerializerSettings);
-                exitLog = string.Concat(this.exitMessage, ", results: ", values);
+                exitLog = string.Concat(exitLog, ", results: ", values);
             }
 
             return exitLog;
