@@ -18,6 +18,7 @@ namespace PubComp.Aspects.Monitoring
         private Logger log;
         private readonly bool doLogValuesOnException;
         private readonly bool doLogValuesOnEnterExit;
+        private readonly bool doLogResultsOnExit;
         private long initialized = 0L;
         [NonSerialized]
         private Action<string> logEnterExit;
@@ -37,19 +38,22 @@ namespace PubComp.Aspects.Monitoring
         /// <param name="doLogValuesOnException">Do log values of parameters passed to method in case of exception, defaults to true</param>
         /// <param name="enterExistLogLevel">Log level to use for method enter/exit, defaults to Trace</param>
         /// <param name="doLogValuesOnEnterExit">Do log values of parameters passed to method on enter/exit, defaults to false></param>
+        /// <param name="doLogResultsOnExit">Do log results of function's output parameters on exit, defaults to false></param>
         /// <remarks>
         /// Entries and exists are logged with Trace log level.
         /// Exceptions are rethrown (using throw;)
         /// </remarks>
         public LogAttribute(string logName = null,
             LogLevelValue exceptionLogLevel = LogLevelValue.Error, bool doLogValuesOnException = true,
-            LogLevelValue enterExistLogLevel = LogLevelValue.Trace, bool doLogValuesOnEnterExit = false)
+            LogLevelValue enterExistLogLevel = LogLevelValue.Trace, bool doLogValuesOnEnterExit = false,
+            bool doLogResultsOnExit = false)
         {
             this.logName = logName;
             this.doLogValuesOnException = doLogValuesOnException;
             this.doLogValuesOnEnterExit = doLogValuesOnEnterExit;
             this.exceptionLogLevel = exceptionLogLevel;
             this.enterExistLogLevel = enterExistLogLevel;
+            this.doLogResultsOnExit = doLogResultsOnExit;
         }
 
         public override void CompileTimeInitialize(System.Reflection.MethodBase method, AspectInfo aspectInfo)
@@ -120,7 +124,7 @@ namespace PubComp.Aspects.Monitoring
             try
             {
                 base.OnInvoke(args);
-
+                exit = AddResultsToExitLog(args, exit);
                 this.logEnterExit(exit);
             }
             catch (Exception ex)
@@ -168,7 +172,7 @@ namespace PubComp.Aspects.Monitoring
             try
             {
                 await base.OnInvokeAsync(args);
-
+                exit = AddResultsToExitLog(args, exit);
                 this.logEnterExit(exit);
             }
             catch (Exception ex)
@@ -182,6 +186,17 @@ namespace PubComp.Aspects.Monitoring
 
                 throw;
             }
+        }
+
+        private string AddResultsToExitLog(MethodInterceptionArgs args, string exitLog)
+        {
+            if (this.doLogResultsOnExit)
+            {
+                var values = JsonConvert.SerializeObject(args.ReturnValue, LogSerializerSettings);
+                exitLog = string.Concat(this.exitMessage, ", results: ", values);
+            }
+
+            return exitLog;
         }
     }
 }
