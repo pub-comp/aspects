@@ -31,5 +31,16 @@ namespace PubComp.Aspects.Monitoring.UnitTests.LogMocks
         {
             await Task.Delay(10);
         }
+        [Log(doLogResultsOnExit:true)]
+        public async Task<LoggableObject> ShortSomethingWithResultAsync(LoggableObject obj)
+        {
+            return obj;
+        }
+
+        [Log(doLogResultsOnExit: true)]
+        public LoggableObject ShortSomethingWithResult(LoggableObject obj)
+        {
+            return obj;
+        }
     }
 }

@@ -131,6 +131,33 @@ namespace PubComp.Aspects.Monitoring.UnitTests
             Assert.AreEqual(expectedCallSite, logList.Logs[0].GetCallSite());
         }
 
+        [TestMethod]
+        public async Task TestLogEntryResultsOnExitAsync_AttributeOnMethod()
+        {
+            var target = new LoggedAsyncMockA();
+            var loggedObj = new LoggableObject { ShouldBeLogged = "important data", ShouldBeIgnored = "pci data" };
+            await target.ShortSomethingWithResultAsync(loggedObj);
+            AssertOnExitMethod();
+        }
+
+        [TestMethod]
+        public void TestLogEntryResultsOnExit_AttributeOnMethod()
+        {
+            var target = new LoggedAsyncMockA();
+            var loggedObj = new LoggableObject { ShouldBeLogged = "important data",ShouldBeIgnored = "pci data"};
+            target.ShortSomethingWithResult(loggedObj);
+            AssertOnExitMethod();
+        }
+
+        private static void AssertOnExitMethod()
+        {
+            var logMessage =
+                "results: {\"ShouldBeLogged\":\"important data\"}";
+            Assert.AreEqual(LogLevel.Trace, logList.Logs[1].GetLevel());
+            Assert.IsTrue(logList.Logs[1].GetMessage().Contains(logMessage));
+            Assert.AreEqual(2, logList.Logs.Count);
+        }
+
         private void TestLogEntryExit(ILoggedMock target)
         {
             target.Short();
