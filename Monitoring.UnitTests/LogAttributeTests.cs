@@ -135,7 +135,7 @@ namespace PubComp.Aspects.Monitoring.UnitTests
         public async Task TestLogEntryResultsOnExitAsync_AttributeOnMethod()
         {
             var target = new LoggedAsyncMockA();
-            var loggedObj = new LoggableObject { ShouldBeLogged = "important data" };
+            var loggedObj = new LoggableObject { ShouldBeLogged = "important data", ShouldBeIgnored = "pci data" };
             await target.ShortSomethingWithResultAsync(loggedObj);
             AssertOnExitMethod();
         }
@@ -144,7 +144,7 @@ namespace PubComp.Aspects.Monitoring.UnitTests
         public void TestLogEntryResultsOnExit_AttributeOnMethod()
         {
             var target = new LoggedAsyncMockA();
-            var loggedObj = new LoggableObject { ShouldBeLogged = "important data" };
+            var loggedObj = new LoggableObject { ShouldBeLogged = "important data",ShouldBeIgnored = "pci data"};
             target.ShortSomethingWithResult(loggedObj);
             AssertOnExitMethod();
         }
