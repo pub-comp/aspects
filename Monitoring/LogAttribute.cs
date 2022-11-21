@@ -5,10 +5,11 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NLog;
 using PostSharp.Aspects;
+using PostSharp.Serialization;
 
 namespace PubComp.Aspects.Monitoring
 {
-    [Serializable]
+    [PSerializable]
     public class LogAttribute : MethodInterceptionAspect
     {
         private string className;
@@ -16,9 +17,9 @@ namespace PubComp.Aspects.Monitoring
         private string logName;
         [NonSerialized]
         private Logger log;
-        private readonly bool doLogValuesOnException;
-        private readonly bool doLogValuesOnEnterExit;
-        private readonly bool doLogResultsOnExit;
+        private   bool doLogValuesOnException;
+        private   bool doLogValuesOnEnterExit;
+        private   bool doLogResultsOnExit;
         private long initialized = 0L;
         [NonSerialized]
         private Action<string> logEnterExit;
@@ -26,8 +27,8 @@ namespace PubComp.Aspects.Monitoring
         private Action<string, Exception> logException;
         private string enterMessage;
         private string exitMessage;
-        private readonly LogLevelValue exceptionLogLevel;
-        private readonly LogLevelValue enterExistLogLevel;
+        private  LogLevelValue exceptionLogLevel;
+        private  LogLevelValue enterExistLogLevel;
         private static readonly JsonSerializerSettings LogSerializerSettings = new JsonSerializerSettings { ContractResolver = new LoggableContractResolver() };
 
         /// <summary>

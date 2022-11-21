@@ -4,10 +4,11 @@ using System.Threading;
 using Newtonsoft.Json;
 using NLog;
 using PostSharp.Aspects;
+using PostSharp.Serialization;
 
 namespace PubComp.Aspects.Monitoring
 {
-    [Serializable]
+    [PSerializable]
     public class LogExceptionsAttribute : OnMethodBoundaryAspect
     {
         private string className;
@@ -15,11 +16,11 @@ namespace PubComp.Aspects.Monitoring
         private string logName;
         [NonSerialized]
         private Logger log;
-        private readonly bool doLogValuesOnException;
+        private   bool doLogValuesOnException;
         private long initialized = 0L;
         [NonSerialized]
         private Action<string, Exception> logException;
-        private readonly LogLevelValue exceptionLogLevel;
+        private   LogLevelValue exceptionLogLevel;
         private static readonly JsonSerializerSettings LogSerializerSettings = new JsonSerializerSettings { ContractResolver = new LoggableContractResolver() };
 
         /// <summary>

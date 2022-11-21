@@ -8,10 +8,11 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NLog;
+using PostSharp.Serialization;
 
 namespace PubComp.Aspects.Monitoring
 {
-    [Serializable]
+    [PSerializable]
     public class MonitorAttribute : MethodInterceptionAspect
     {
         private string fullMethodName;
@@ -22,8 +23,10 @@ namespace PubComp.Aspects.Monitoring
         private string logName;
         [NonSerialized]
         private Logger log;
-        private readonly bool doLogValuesOnException;
-        private readonly bool doLogValuesOnEnterExit;
+        
+        private  bool doLogValuesOnException;
+        private  bool doLogValuesOnEnterExit;
+        
         private long initialized = 0L;
         [NonSerialized]
         private Action<string> logEnterExit;
@@ -31,8 +34,8 @@ namespace PubComp.Aspects.Monitoring
         private Action<string, Exception> logException;
         private string enterMessage;
         private string exitMessage;
-        private readonly LogLevelValue exceptionLogLevel;
-        private readonly LogLevelValue enterExistLogLevel;
+        private   LogLevelValue exceptionLogLevel;
+        private   LogLevelValue enterExistLogLevel;
         private static readonly JsonSerializerSettings LogSerializerSettings = new JsonSerializerSettings { ContractResolver = new LoggableContractResolver() };
 
         #endregion
