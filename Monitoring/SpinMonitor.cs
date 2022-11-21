@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PostSharp.Serialization;
+using System;
 using System.Threading;
 
 namespace PubComp.Aspects.Monitoring
@@ -18,7 +19,7 @@ namespace PubComp.Aspects.Monitoring
     /// 
     /// This class is thread safe.
     /// </remarks>
-    [Serializable]
+    [PSerializable]
     public class SpinMonitor
     {
         private long threadId;

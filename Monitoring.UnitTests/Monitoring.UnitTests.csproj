@@ -5,10 +5,10 @@
     <RootNamespace>PubComp.Aspects.Monitoring.UnitTests</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="MSTest.TestAdapter" Version="2.2.3" />
-    <PackageReference Include="MSTest.TestFramework" Version="2.2.3" />
+    <PackageReference Include="MSTest.TestAdapter" Version="2.2.10" />
+    <PackageReference Include="MSTest.TestFramework" Version="2.2.10" />
     <PackageReference Include="NLog" Version="4.5.10" />
-    <PackageReference Include="PostSharp" Version="6.0.28" />
+    <PackageReference Include="PostSharp" Version="6.10.16" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Monitoring\Monitoring.csproj" />

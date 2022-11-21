@@ -1,9 +1,10 @@
-﻿using System;
+﻿using PostSharp.Serialization;
+using System;
 
 // ReSharper disable UnusedMember.Global
 namespace PubComp.Aspects.Monitoring
 {
-    [Serializable]
+    
     public enum LogLevelValue
     {
         Trace = 0,

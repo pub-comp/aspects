@@ -6,7 +6,7 @@ using NLog.Targets;
 using PubComp.Aspects.Monitoring.UnitTests.LogMocks;
 using PubComp.Aspects.Monitoring.UnitTests.LogMocks.Mocks2;
 using PubComp.Aspects.Monitoring.UnitTests.Objects;
-
+ 
 namespace PubComp.Aspects.Monitoring.UnitTests
 {
     [TestClass]
@@ -39,7 +39,12 @@ namespace PubComp.Aspects.Monitoring.UnitTests
             var target = new LoggedMockA();
             TestLogEntryException(target);
         }
-
+        [TestMethod]
+        public void TestLogEntryException_ChangedLogLevel_AspectOnMethod()
+        {
+            var target = new LoggedMockD();
+            TestLogEntryExitChangedLogLevel(target);
+        }
         [TestMethod]
         public void TestLogEntryExit_AspectOnClass()
         {
@@ -165,6 +170,18 @@ namespace PubComp.Aspects.Monitoring.UnitTests
             Assert.AreEqual(2, logList.Logs.Count);
             Assert.AreEqual(LogLevel.Trace, logList.Logs[0].GetLevel());
             Assert.AreEqual(LogLevel.Trace, logList.Logs[1].GetLevel());
+
+            var expectedCallSite = $"{target.GetType().FullName}.{nameof(target.Short)}";
+            Assert.AreEqual(expectedCallSite, logList.Logs[0].GetCallSite());
+            Assert.AreEqual(expectedCallSite, logList.Logs[1].GetCallSite());
+        }
+        private void TestLogEntryExitChangedLogLevel(ILoggedMock target)
+        {
+            target.Short();
+
+            Assert.AreEqual(2, logList.Logs.Count);
+            Assert.AreEqual(LogLevel.Fatal, logList.Logs[0].GetLevel());
+            Assert.AreEqual(LogLevel.Fatal, logList.Logs[1].GetLevel());
 
             var expectedCallSite = $"{target.GetType().FullName}.{nameof(target.Short)}";
             Assert.AreEqual(expectedCallSite, logList.Logs[0].GetCallSite());
